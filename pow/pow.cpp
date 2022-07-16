@@ -113,7 +113,7 @@ static struct {
 	};
 } Global;
 
-INLINE std::string getOperationResult(std::string const& rawInput)
+INLINE std::pair<std::string, std::string> getOperationResult(std::string const& rawInput)
 {
 	static const std::regex rgxParseOperation{ "(?:\\({0,1}([\\d\\^]+)\\){0,1}?)\\s*\\^\\s*(?:\\({0,1}([\\d\\^]+)\\){0,1}?)", std::regex_constants::optimize };
 	std::smatch matches;
@@ -129,40 +129,51 @@ INLINE std::string getOperationResult(std::string const& rawInput)
 		throw make_exception("Missing exponent in '", rawInput, "'");
 
 	std::string num{ matches[1] }, exp{ matches[2] };
-	bool numHasSub{ false }, expHasSub{ false };
+	std::string numEq, expEq;
 
 	// resolve sub-expressions, if necessary
 	if (num.find('^') != std::string::npos) {
-		num = getOperationResult(num);
-		numHasSub = true;
+		const auto& [eq, result] {getOperationResult(num) };
+		numEq = eq;
+		num = result;
 	}
 	if (exp.find('^') != std::string::npos) {
-		exp = getOperationResult(exp);
-		expHasSub = true;
+		const auto& [eq, result] { getOperationResult(exp) };
+		expEq = eq;
+		exp = result;
 	}
-
-	std::string s{ Pow(num, exp).getResultString() };
+	
+	std::string result{ Pow(num, exp).getResultString() };
 
 	std::stringstream ss;
 
+
 	if (!Global.quiet) {
 		// NUMBER:
-		if (numHasSub) ss << Global.colors(COLOR::BRACKET) << '(' << Global.colors();
-		ss << Global.colors(COLOR::NUMBER) << num << Global.colors();
-		if (numHasSub) ss << Global.colors(COLOR::BRACKET) << ')' << Global.colors();
+		if (numEq.empty())
+			ss << Global.colors(COLOR::NUMBER) << num << Global.colors();
+		else {
+			ss << Global.colors(COLOR::BRACKET) << '(' << Global.colors();
+			ss << Global.colors(COLOR::NUMBER) << numEq << Global.colors();
+			ss << Global.colors(COLOR::BRACKET) << ')' << Global.colors();
+		}
 		// CARET:
 		ss << ' ' << Global.colors(COLOR::CARET) << '^' << Global.colors() << ' ';
 		// EXPONENT:
-		if (expHasSub) ss << Global.colors(COLOR::BRACKET) << '(' << Global.colors();
-		ss << Global.colors(COLOR::EXPONENT) << exp << Global.colors();
-		if (expHasSub) ss << Global.colors(COLOR::BRACKET) << ')' << Global.colors();
+		if (expEq.empty())
+			ss << Global.colors(COLOR::EXPONENT) << exp << Global.colors();
+		else {
+			ss << Global.colors(COLOR::BRACKET) << '(' << Global.colors();
+			ss << Global.colors(COLOR::EXPONENT) << expEq << Global.colors();
+			ss << Global.colors(COLOR::BRACKET) << ')' << Global.colors();
+		}
 		// EQUALS:
 		ss << ' ' << Global.colors(COLOR::EQUALS) << '=' << Global.colors() << ' ';
 	}
 
-	ss << Global.colors(COLOR::RESULT) << s << Global.colors();
+	ss << Global.colors(COLOR::RESULT) << result << Global.colors();
 
-	return ss.str();
+	return { ss.str(), result };
 }
 
 int main(const int argc, char** argv)
@@ -190,7 +201,8 @@ int main(const int argc, char** argv)
 		const auto& operations{ str::split_all(str::join(args.typegetv_all<opt::Parameter>(), ' '), ',') };
 
 		for (const auto& arg : operations) {
-			std::cout << getOperationResult(arg) << std::endl;
+			const auto& [eq, result] {getOperationResult(arg)};
+			std::cout << eq << std::endl;
 		}
 
 		return 0;
