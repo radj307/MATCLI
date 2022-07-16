@@ -49,9 +49,9 @@ protected:
 	}
 
 public:
-	CONSTEXPR Pow() {}
-	CONSTEXPR Pow(std::string const& number, std::string const& exponent) : number{ number }, exponent{ exponent } {}
-	CONSTEXPR Pow(std::string&& number, std::string&& exponent) : number{ std::move(number) }, exponent{ std::move(exponent) } {}
+	WINCONSTEXPR Pow() {}
+	WINCONSTEXPR Pow(std::string const& number, std::string const& exponent) : number{ number }, exponent{ exponent } {}
+	WINCONSTEXPR Pow(std::string&& number, std::string&& exponent) : number{ std::move(number) }, exponent{ std::move(exponent) } {}
 
 	/// @brief	Returns true when the number or exponent should be parsed as a floating-point number.
 	bool hasFloatingPoint() const
