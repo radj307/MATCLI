@@ -42,4 +42,4 @@ _ReSharper*/
 #Nuget packages folder
 packages/
 out/
-pow/version.h
+pow/rc/version.h
