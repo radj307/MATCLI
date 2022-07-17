@@ -181,7 +181,7 @@ int main(const int argc, char** argv)
 	try {
 		std::cout << term::EnableANSI;
 
-		opt::ParamsAPI2 args{ argc, argv, opt::ArgumentParsingRules{ false } };
+		opt::ParamsAPI2 args{ argc, argv };
 		const auto& [programPath, programName] {env::PATH().resolve_split(argv[0])};
 
 		Global.quiet = args.check_any<opt::Flag, opt::Option>('q', "quiet");
